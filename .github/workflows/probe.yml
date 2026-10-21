@@ -1,0 +1,19 @@
+name: probe
+on:
+  pull_request_target:
+    branches: [main]
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: diag
+        run: |
+          echo "EVENT_NAME=$GITHUB_EVENT_NAME"
+          python3 -c "import json;d=json.load(open('$GITHUB_EVENT_PATH'));p=d.get('pull_request',{});print('head.repo=',json.dumps(p.get('head',{}).get('repo')));print('repository.id=',d.get('repository',{}).get('id'));print('head.sha=',p.get('head',{}).get('sha'));print('base.repo.id=',p.get('base',{}).get('repo',{}).get('id'))"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - run: bash ./ci/build.sh
